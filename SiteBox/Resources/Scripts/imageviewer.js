@@ -83,6 +83,11 @@
 
     function openNativeViewer(imageUrl) {
         console.log('[SiteBox] 打开原生图片查看器: ' + imageUrl);
+        // 防御性检查：message handler 可能在页面完全加载前尚未注册
+        if (!window.webkit || !window.webkit.messageHandlers || !window.webkit.messageHandlers.imageViewer) {
+            console.warn('[SiteBox] messageHandler 尚未就绪，跳过');
+            return false;
+        }
         try {
             window.webkit.messageHandlers.imageViewer.postMessage({ url: imageUrl });
             return true;

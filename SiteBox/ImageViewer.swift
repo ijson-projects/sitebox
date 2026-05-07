@@ -129,6 +129,8 @@ struct ImageViewerContent: View {
     @State private var loadError: String? = nil
     @State private var scale: CGFloat = 1.0
     @State private var dragOffset: CGSize = .zero
+    @State private var accumulatedOffset: CGSize = .zero
+    @State private var isHoveringImage: Bool = false
     @State private var showHUD = true
     @State private var hudTimer: Timer?
     private let hudAutoHideDelay: TimeInterval = 2.5
@@ -156,6 +158,19 @@ struct ImageViewerContent: View {
                     bottomBar
                 }
                 .transition(.opacity)
+            }
+            
+            // 右下角浮动缩放控件
+            if showHUD && nsImage != nil {
+                VStack {
+                    Spacer()
+                    HStack {
+                        Spacer()
+                        zoomControls
+                            .padding(.trailing, 16)
+                            .padding(.bottom, 16)
+                    }
+                }
             }
             
             // 关闭按钮
@@ -191,7 +206,7 @@ struct ImageViewerContent: View {
             return .handled
         }
         .onKeyPress("0") {
-            withAnimation(.easeInOut(duration: 0.12)) { scale = 1.0 }
+            withAnimation(.easeInOut(duration: 0.12)) { scale = 1.0; accumulatedOffset = .zero }
             return .handled
         }
         .onKeyPress("s") { saveImage(); return .handled }
@@ -202,7 +217,7 @@ struct ImageViewerContent: View {
                     withAnimation(.easeInOut(duration: 0.12)) { scale = s }
                 } else if event.deltaY < 0 {
                     let s = max(scale - 0.25, 0.25)
-                    withAnimation(.easeInOut(duration: 0.12)) { scale = s }
+                    withAnimation(.easeInOut(duration: 0.12)) { scale = s; if s <= 1.0 { accumulatedOffset = .zero } }
                 }
                 showHUD = true
                 resetHUDTimer()
@@ -218,6 +233,12 @@ struct ImageViewerContent: View {
         let fitScale = min(containerSize.width / imgSize.width, containerSize.height / imgSize.height)
         let displayScale = fitScale * scale
         
+        // 总偏移 = 累积位移 + 当前拖拽位移
+        let totalOffset = CGSize(
+            width: accumulatedOffset.width + dragOffset.width,
+            height: accumulatedOffset.height + dragOffset.height
+        )
+        
         return Image(nsImage: image)
             .resizable()
             .interpolation(.high)
@@ -228,25 +249,33 @@ struct ImageViewerContent: View {
             )
             .clipped()
             .position(
-                x: containerSize.width / 2 + dragOffset.width,
-                y: containerSize.height / 2 + dragOffset.height
+                x: containerSize.width / 2 + totalOffset.width,
+                y: containerSize.height / 2 + totalOffset.height
             )
             .gesture(
-                DragGesture()
-                    .onChanged { value in
-                        if scale > 1.0 {
+                scale > 1.0 ?
+                    DragGesture()
+                        .onChanged { value in
                             dragOffset = value.translation
                         }
-                    }
-                    .onEnded { _ in
-                        withAnimation(.easeOut(duration: 0.15)) {
+                        .onEnded { value in
+                            accumulatedOffset.width += value.translation.width
+                            accumulatedOffset.height += value.translation.height
                             dragOffset = .zero
                         }
-                    }
+                    : nil
             )
+            .onHover { hovering in
+                isHoveringImage = hovering
+                if hovering && scale > 1.0 {
+                    NSCursor.openHand.set()
+                } else {
+                    NSCursor.arrow.set()
+                }
+            }
             .onTapGesture(count: 2) {
                 if scale > 1.0 {
-                    withAnimation(.easeInOut(duration: 0.15)) { scale = 1.0 }
+                    withAnimation(.easeInOut(duration: 0.15)) { scale = 1.0; accumulatedOffset = .zero }
                 } else {
                     withAnimation(.easeInOut(duration: 0.15)) { scale = 2.5 }
                 }
@@ -286,27 +315,25 @@ struct ImageViewerContent: View {
     // MARK: - 底部信息栏
     
     private var bottomBar: some View {
-        HStack {
-            Text(displayFileName)
-                .font(.system(size: 11))
-                .foregroundColor(.white.opacity(0.7))
-                .lineLimit(1)
-                .truncationMode(.middle)
-            
-            Spacer()
-            
-            if let img = nsImage {
-                Text("\(Int(img.size.width))×\(Int(img.size.height))")
-                    .font(.system(size: 10, design: .monospaced))
-                    .foregroundColor(.white.opacity(0.35))
+        HStack(spacing: 0) {
+            // 左侧：文件名 + 尺寸
+            HStack(spacing: 8) {
+                Text(displayFileName)
+                    .font(.system(size: 12))
+                    .foregroundColor(.white.opacity(0.7))
+                    .lineLimit(1)
+                    .truncationMode(.middle)
+                
+                if let img = nsImage {
+                    Text("\(Int(img.size.width))×\(Int(img.size.height))")
+                        .font(.system(size: 11, design: .monospaced))
+                        .foregroundColor(.white.opacity(0.35))
+                }
             }
             
-            Text("\(Int(scale * 100))%")
-                .font(.system(size: 10, weight: .medium, design: .monospaced))
-                .foregroundColor(.white.opacity(0.4))
-                .frame(width: 36, alignment: .trailing)
+            Spacer()
         }
-        .padding(.horizontal, 12)
+        .padding(.horizontal, 14)
         .padding(.vertical, 8)
         .background(
             LinearGradient(
@@ -314,6 +341,65 @@ struct ImageViewerContent: View {
                 startPoint: .top, endPoint: .bottom
             )
         )
+    }
+    
+    /// 右下角浮动缩放控件 — 大且醒目
+    private var zoomControls: some View {
+        VStack(spacing: 0) {
+            Button(action: {
+                let s = min(scale + 0.25, 5.0)
+                withAnimation(.easeInOut(duration: 0.12)) { scale = s }
+                resetHUDTimer()
+            }) {
+                Image(systemName: "plus")
+                    .font(.system(size: 22, weight: .medium))
+                    .foregroundColor(.white)
+                    .frame(width: 48, height: 48)
+            }
+            .buttonStyle(.plain)
+            .help("放大 (⌘↑)")
+            
+            Divider()
+                .frame(width: 30)
+                .background(Color.white.opacity(0.15))
+            
+            // 百分比（点击重置）
+            Text("\(Int(scale * 100))%")
+                .font(.system(size: 13, weight: .semibold, design: .monospaced))
+                .foregroundColor(.white.opacity(0.8))
+                .frame(width: 48, height: 28)
+                .contentShape(Rectangle())
+                .onTapGesture {
+                    withAnimation(.easeInOut(duration: 0.15)) { scale = 1.0; accumulatedOffset = .zero }
+                }
+            
+            Divider()
+                .frame(width: 30)
+                .background(Color.white.opacity(0.15))
+            
+            Button(action: {
+                let s = max(scale - 0.25, 0.25)
+                withAnimation(.easeInOut(duration: 0.12)) { scale = s }
+                resetHUDTimer()
+            }) {
+                Image(systemName: "minus")
+                    .font(.system(size: 22, weight: .medium))
+                    .foregroundColor(.white)
+                    .frame(width: 48, height: 48)
+            }
+            .buttonStyle(.plain)
+            .help("缩小 (⌘↓)")
+        }
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(.ultraThinMaterial)
+                .environment(\.colorScheme, .dark)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 12)
+                .stroke(Color.white.opacity(0.1), lineWidth: 1)
+        )
+        .shadow(color: .black.opacity(0.3), radius: 8, y: 4)
     }
     
     // MARK: - 关闭按钮
