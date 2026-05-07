@@ -838,22 +838,24 @@ class CustomWebView: WKWebView {
 
 // MARK: - WKUIDelegate
 extension WebViewModel: WKUIDelegate {
-    /// 处理新窗口打开请求
+    /// 处理新窗口打开请求（window.open / target=_blank）
+    /// 新窗口/新标签请求交给系统浏览器处理，避免覆盖主窗口内容
     func webView(_ webView: WKWebView, createWebViewWith configuration: WKWebViewConfiguration, for navigationAction: WKNavigationAction, windowFeatures: WKWindowFeatures) -> WKWebView? {
         guard let url = navigationAction.request.url else {
             return nil
         }
 
-        // 拦截 about:blank
+        // 拦截 about:blank 和空链接
         if url.absoluteString == "about:blank" || url.absoluteString.isEmpty {
             return nil
         }
 
-        // 在当前窗口打开
-        if navigationAction.targetFrame == nil {
-            webView.load(navigationAction.request)
-        }
-
+        // 新窗口请求在 App 内创建浮动子窗口，共享主窗口 Cookie/Session
+        // 场景：飞书/Slack 消息卡片点击、JS window.open()、target=_blank 链接
+        print("🪟 新窗口请求，创建浮动子窗口: \(url.absoluteString)")
+        FloatingWebViewManager.shared.open(url: url, from: webView)
+        
+        // 返回 nil = 我们自己处理了，不需要 WebKit 创建新 WebView
         return nil
     }
 
