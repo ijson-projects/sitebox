@@ -1,4 +1,4 @@
-# SiteBox
+# sitebox
 
 <img src="custom_icons/AppIcon.png" width="128" height="128" align="right" />
 
@@ -13,9 +13,9 @@ A lightweight Swift + WKWebView wrapper — no Electron, no Chromium, no bloat. 
 
 ![alt text](assets/screenshot.png)
 
-## Why SiteBox
+## Why sitebox
 
-Tired of losing important web apps among 50 browser tabs? SiteBox turns them into proper macOS apps with their own Dock icon, window, and keyboard shortcuts.
+Tired of losing important web apps among 50 browser tabs? sitebox turns them into proper macOS apps with their own Dock icon, window, and keyboard shortcuts.
 
 - **Chat apps** (Feishu, Slack, Discord, Teams)
 - **Dashboards** (Grafana, Datadog, internal analytics)
@@ -36,7 +36,7 @@ Tired of losing important web apps among 50 browser tabs? SiteBox turns them int
 
 ## Comparison
 
-| | SiteBox | Nativefier | Electron Wrapper |
+| | sitebox | Nativefier | Electron Wrapper |
 |---|---|---|---|
 | Engine | WKWebView | Electron/Chromium | Electron/Chromium |
 | Memory | ~50 MB | ~200 MB | ~250 MB |
@@ -50,21 +50,21 @@ Tired of losing important web apps among 50 browser tabs? SiteBox turns them int
 
 ### Download (Recommended)
 
-Download `SiteBox.dmg` from [Releases](https://github.com/ijson-projects/sitebox/releases).
+Download `sitebox.dmg` from [Releases](https://github.com/ijson-projects/sitebox/releases).
 
 ### Build from Source
 
 ```bash
 # Requirements: macOS 15+, Xcode 17+
 git clone https://github.com/ijson-projects/sitebox.git
-cd SiteBox
+cd sitebox
 ./package.sh          # build .app
 ./create_dmg.sh       # create .dmg (optional)
 ```
 
 ## Usage
 
-1. Launch SiteBox
+1. Launch sitebox
 2. Click ⚙️ or `⌘,` to open Settings
 3. Enter any URL (e.g., `https://www.ijson.com`)
 4. Set a custom app name
