@@ -1,4 +1,4 @@
-# sitebox
+# SiteBox
 
 <img src="custom_icons/AppIcon.png" width="128" height="128" align="right" />
 
@@ -11,11 +11,15 @@ A lightweight Swift + WKWebView wrapper — no Electron, no Chromium, no bloat. 
 [![License](https://img.shields.io/badge/license-Proprietary-red)](LICENSE)
 
 
-![alt text](assets/screenshot.png)
+<p align="center">
+  <img src="assets/screenshot.png" alt="SiteBox — turn any website into a native macOS desktop app with one click" width="800" />
+  <br/><em>Wrap Feishu, Slack, ChatGPT, or any web app into a native macOS desktop application</em>
+</p>
 
-## Why sitebox
 
-Tired of losing important web apps among 50 browser tabs? sitebox turns them into proper macOS apps with their own Dock icon, window, and keyboard shortcuts.
+## Why SiteBox
+
+Tired of losing important web apps among 50 browser tabs? SiteBox turns them into proper macOS apps with their own Dock icon, window, and keyboard shortcuts.
 
 - **Chat apps** (Feishu, Slack, Discord, Teams)
 - **Dashboards** (Grafana, Datadog, internal analytics)
@@ -36,7 +40,7 @@ Tired of losing important web apps among 50 browser tabs? sitebox turns them int
 
 ## Comparison
 
-| | sitebox | Nativefier | Electron Wrapper |
+| | SiteBox | Nativefier | Electron Wrapper |
 |---|---|---|---|
 | Engine | WKWebView | Electron/Chromium | Electron/Chromium |
 | Memory | ~50 MB | ~200 MB | ~250 MB |
@@ -50,21 +54,21 @@ Tired of losing important web apps among 50 browser tabs? sitebox turns them int
 
 ### Download (Recommended)
 
-Download `sitebox.dmg` from [Releases](https://github.com/ijson-projects/sitebox/releases).
+Download `SiteBox.dmg` from [Releases](https://github.com/ijson-projects/sitebox/releases).
 
 ### Build from Source
 
 ```bash
 # Requirements: macOS 15+, Xcode 17+
 git clone https://github.com/ijson-projects/sitebox.git
-cd sitebox
+cd SiteBox
 ./package.sh          # build .app
 ./create_dmg.sh       # create .dmg (optional)
 ```
 
 ## Usage
 
-1. Launch sitebox
+1. Launch SiteBox
 2. Click ⚙️ or `⌘,` to open Settings
 3. Enter any URL (e.g., `https://www.ijson.com`)
 4. Set a custom app name
